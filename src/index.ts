@@ -24,20 +24,24 @@ async function main() {
 
 async function init() {
   puppeteer.use(StealthPlugin());
+
+  const args: string[] = [];
+  if (process.env.PROFILE_FOLDER) {
+    args.push(`--profile-directory=${process.env.PROFILE_FOLDER}`);
+  }
   const options: PuppeteerLaunchOptions = {
     executablePath: BROWSER_PATH,
     userDataDir: DATA_FOLDER,
     headless: false,
     devtools: true,
-    args: [],
+    args,
   };
-  if (process.env.PROFILE_FOLDER) {
-    options.args!.push(`--profile-directory=${process.env.PROFILE_FOLDER}`);
-  }
-  const browser = await puppeteer.launch(options);
 
+  const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
 
+  // This will go on forever until the browser or server is terminated
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     await loop(page);
     await wait(1000 * 5);
