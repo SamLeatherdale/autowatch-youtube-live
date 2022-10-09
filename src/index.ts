@@ -33,7 +33,6 @@ async function init() {
     executablePath: BROWSER_PATH,
     userDataDir: DATA_FOLDER,
     headless: false,
-    devtools: true,
     args,
   };
 
@@ -47,10 +46,29 @@ async function init() {
     await wait(1000 * 5);
   }
 }
-main();
 
+let askLogin = false;
 async function loop(page: Page) {
-  const status = await checkStatus(page);
+  let status = await checkStatus(page);
+
+  if (status.loginUrl && !askLogin) {
+    askLogin = true;
+    log(chalk.yellow`User not logged in. Prompting in browser for login`);
+    const confirm = await page.evaluate(() => {
+      return window.confirm(
+        `[Autowatch Live] It looks like you're not logged in. You can't earn rewards without being logged in. Would you like to login now?`
+      );
+    });
+
+    if (confirm) {
+      await page.goto(status.loginUrl);
+      do {
+        log("Waiting for login to complete...");
+        await wait(1000 * 5);
+        status = await checkStatus(page);
+      } while (!(status.isChannelPage || status.isStream));
+    }
+  }
 
   if (!status.isStream && !status.isChannelPage) {
     // Go to the channel and look for a stream
@@ -93,3 +111,5 @@ async function loop(page: Page) {
 async function goToChannelPage(page: Page) {
   await page.goto(CHANNEL_PAGE, { waitUntil: "domcontentloaded" });
 }
+
+main();
