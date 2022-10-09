@@ -76,11 +76,16 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
         const loginButton = document.querySelector<HTMLElement>(
           '.ytd-masthead [href^="https://accounts.google.com"]'
         );
+        const chatFrame =
+          document.querySelector<HTMLIFrameElement>("#chatframe");
+        // Make sure stream hasn't ended
+        const isStream =
+          !!chatFrame && !chatFrame.src.includes("live_chat_replay");
 
         const result = {
           isChannelPage: !!document.querySelector("#channel-container"),
           loginUrl: loginButton ? getParentLink(loginButton) : undefined,
-          isStream: !!document.querySelector("#chatframe"),
+          isStream,
           isStreamWaiting: offlineSlate?.style?.display !== "none",
           isStreamRewards: rewardsButton?.innerText === "CONNECTED",
         };

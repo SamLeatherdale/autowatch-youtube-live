@@ -76,14 +76,13 @@ async function loop(page: Page) {
     await goToChannelPage(page);
   }
 
-  if (!status.isStream && status.isChannelPage) {
+  if (status.isChannelPage) {
     const streams = await findStreams(page);
 
     if (streams?.url) {
       log(
-        chalk.green`${
-          streams.isLive ? "Live" : "Scheduled"
-        } stream detected, redirecting...`
+        chalk.green`${streams.isLive ? "Live" : "Scheduled"
+          } stream detected, redirecting...`
       );
       await page.goto(streams.url);
     } else {
