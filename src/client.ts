@@ -68,25 +68,21 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
 
       function checkStatus(): CheckStatusResult {
         console.log(`[agent] checking status...`);
-        const offlineSlate =
-          document.querySelector<HTMLElement>(".ytp-offline-slate");
         const rewardsButton = document.querySelector<HTMLElement>(
           ".ytd-account-link-button-renderer"
         );
         const loginButton = document.querySelector<HTMLElement>(
           '.ytd-masthead [href^="https://accounts.google.com"]'
         );
-        const chatFrame =
-          document.querySelector<HTMLIFrameElement>("#chatframe");
-        // Make sure stream hasn't ended
-        const isStream =
-          !!chatFrame && !chatFrame.src.includes("live_chat_replay");
+        const isLiveNowButton =
+          document.querySelector<HTMLElement>(".ytp-live");
 
         const result = {
           isChannelPage: !!document.querySelector("#channel-container"),
           loginUrl: loginButton ? getParentLink(loginButton) : undefined,
-          isStream,
-          isStreamWaiting: offlineSlate?.style?.display !== "none",
+          isStream: !!isLiveNowButton,
+          isStreamWaiting:
+            !!isLiveNowButton && isLiveNowButton.style.display === "none",
           isStreamRewards: rewardsButton?.innerText === "CONNECTED",
         };
         console.log(`[agent]`, result);

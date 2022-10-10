@@ -8,7 +8,8 @@
     "dev": "ts-node src/index.ts",
     "test": "npm run lint && npm run typecheck",
     "lint": "eslint \"src/**/*.ts\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "type:compile": "tsc --project tsconfig.json"
   },
   "author": "",
   "license": "ISC",
