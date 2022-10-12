@@ -11,6 +11,7 @@ type CheckStatusResult = {
   isStream: boolean;
   isStreamWaiting: boolean;
   isStreamRewards: boolean;
+  isVideoIdMismatch: boolean;
 };
 
 type Action = "findStreams" | "checkStatus";
@@ -74,16 +75,33 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
         const loginButton = document.querySelector<HTMLElement>(
           '.ytd-masthead [href^="https://accounts.google.com"]'
         );
+        const videoId = document.querySelector<HTMLMetaElement>(
+          "meta[itemprop=videoId]"
+        )?.content;
+        const urlVideoId = new URLSearchParams(window.location.search).get("v");
+        const isLiveStream = document.querySelector<HTMLMetaElement>(
+          "meta[itemprop=isLiveBroadcast]"
+        );
+        const isPastLiveStream = document.querySelector<HTMLMetaElement>(
+          "meta[itemprop=publication] meta[itemprop=endDate]"
+        );
         const isLiveNowButton =
           document.querySelector<HTMLElement>(".ytp-live");
+        const premierTrailerOverlay = document.querySelector<HTMLElement>(
+          ".ytp-offline-slate-premiere-trailer"
+        );
 
         const result = {
           isChannelPage: !!document.querySelector("#channel-container"),
           loginUrl: loginButton ? getParentLink(loginButton) : undefined,
-          isStream: !!isLiveNowButton,
+          isStream: !!isLiveStream && !isPastLiveStream,
           isStreamWaiting:
-            !!isLiveNowButton && isLiveNowButton.style.display === "none",
+            (!!isLiveNowButton && isLiveNowButton.style.display === "none") ||
+            (!!premierTrailerOverlay &&
+              premierTrailerOverlay.style.display !== "none"),
           isStreamRewards: rewardsButton?.innerText === "CONNECTED",
+          isVideoIdMismatch:
+            !!videoId && !!urlVideoId && videoId !== urlVideoId,
         };
         console.log(`[agent]`, result);
         return result;

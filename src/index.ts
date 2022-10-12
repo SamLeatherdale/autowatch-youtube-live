@@ -51,6 +51,13 @@ let askLogin = false;
 async function loop(page: Page) {
   let status = await checkStatus(page);
 
+  if (status.isVideoIdMismatch) {
+    log(
+      chalk.yellow`Video ID does not match URL, refreshing page for updated metadata`
+    );
+    return await page.reload();
+  }
+
   if (status.loginUrl && !askLogin) {
     askLogin = true;
     log(chalk.yellow`User not logged in. Prompting in browser for login`);
