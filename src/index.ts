@@ -53,14 +53,14 @@ async function loop(page: Page) {
 
   if (status.isVideoIdMismatch) {
     log(
-      chalk.yellow`Video ID does not match URL, refreshing page for updated metadata`
+      chalk.yellow`Video ID ${status.videoId} does not match URL ${status.urlVideoId}, refreshing page for updated metadata`
     );
     return await page.reload();
   }
 
   if (status.loginUrl && !askLogin) {
     askLogin = true;
-    log(chalk.yellow`User not logged in. Prompting in browser for login`);
+    log(chalk.yellow`User not logged in. Prompting in browser for login...`);
     const confirm = await page.evaluate(() => {
       return window.confirm(
         `[Autowatch Live] It looks like you're not logged in. You can't earn rewards without being logged in. Would you like to login now?`
@@ -78,8 +78,6 @@ async function loop(page: Page) {
   }
 
   if (!status.isStream && !status.isChannelPage) {
-    // Go to the channel and look for a stream
-    log(chalk.yellow`No live stream detected, going to channel page`);
     await goToChannelPage(page);
   }
 
@@ -88,8 +86,9 @@ async function loop(page: Page) {
 
     if (streams?.url) {
       log(
-        chalk.green`${streams.isLive ? "Live" : "Scheduled"
-          } stream detected, redirecting...`
+        chalk.green`${streams.isLive ? "Live" : "Scheduled"} stream detected, going to ${
+          streams.url
+        }`
       );
       await page.goto(streams.url);
     } else {
@@ -115,6 +114,8 @@ async function loop(page: Page) {
 }
 
 async function goToChannelPage(page: Page) {
+  // Go to the channel and look for a stream
+  log(chalk.yellow`No live stream detected, going to channel ${CHANNEL_PAGE}`);
   await page.goto(CHANNEL_PAGE, { waitUntil: "domcontentloaded" });
 }
 

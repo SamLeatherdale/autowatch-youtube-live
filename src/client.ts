@@ -12,6 +12,8 @@ type CheckStatusResult = {
   isStreamWaiting: boolean;
   isStreamRewards: boolean;
   isVideoIdMismatch: boolean;
+  videoId?: string;
+  urlVideoId: string | null;
 };
 
 type Action = "findStreams" | "checkStatus";
@@ -100,6 +102,8 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
             (!!premierTrailerOverlay &&
               premierTrailerOverlay.style.display !== "none"),
           isStreamRewards: rewardsButton?.innerText === "CONNECTED",
+          videoId,
+          urlVideoId,
           isVideoIdMismatch:
             !!videoId && !!urlVideoId && videoId !== urlVideoId,
         };
