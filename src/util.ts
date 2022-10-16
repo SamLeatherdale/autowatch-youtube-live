@@ -1,4 +1,6 @@
 import chalk from "chalk";
+import { format } from "date-fns";
+import slug from "unique-slug";
 import { appendFileSync, mkdirSync, existsSync } from "fs";
 import { resolve } from "path";
 
@@ -29,8 +31,7 @@ export function logError(e: unknown) {
   logColor(chalk.red, msg);
 }
 
-const date = new Date();
-const logName = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDay()}.log`;
+const logName = `${format(new Date(), "yyyy-MM-dd")}-${slug()}.log`;
 
 export function writeToLog(...messages: unknown[]) {
   const logDir = resolve(__dirname, "../logs");
