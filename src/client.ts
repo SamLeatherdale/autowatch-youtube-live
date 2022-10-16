@@ -85,7 +85,7 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
           "meta[itemprop=isLiveBroadcast]"
         );
         const isPastLiveStream = document.querySelector<HTMLMetaElement>(
-          "meta[itemprop=publication] meta[itemprop=endDate]"
+          "[itemprop=publication] meta[itemprop=endDate]"
         );
         const isLiveNowButton =
           document.querySelector<HTMLElement>(".ytp-live");
