@@ -4,7 +4,8 @@ import { Page, PuppeteerLaunchOptions } from "puppeteer";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { checkStatus, findStreams } from "./client";
-import { getEnvironment, log, logStatusMessage, UserError, wait } from "./util";
+import { goToChannelPage, safeGoTo, safeReload } from "./puppeteer-utils";
+import { getEnvironment, log, logColor, logError, logStatusMessage, UserError, wait } from "./util";
 
 config();
 
@@ -15,9 +16,9 @@ async function main() {
     await init();
   } catch (e) {
     if (e instanceof UserError) {
-      console.error(chalk.red(e.message));
+      logError(e.message);
     } else {
-      console.error(e);
+      logError(e);
     }
   }
 }
@@ -52,15 +53,16 @@ async function loop(page: Page) {
   let status = await checkStatus(page);
 
   if (status.isVideoIdMismatch) {
-    log(
-      chalk.yellow`Video ID ${status.videoId} does not match URL ${status.urlVideoId}, refreshing page for updated metadata`
+    logColor(
+      chalk.yellow,
+      `Video ID ${status.videoId} does not match URL ${status.urlVideoId}, refreshing page for updated metadata`
     );
-    return await page.reload();
+    return await safeReload(page, CHANNEL_PAGE);
   }
 
   if (status.loginUrl && !askLogin) {
     askLogin = true;
-    log(chalk.yellow`User not logged in. Prompting in browser for login...`);
+    logColor(chalk.yellow, `User not logged in. Prompting in browser for login...`);
     const confirm = await page.evaluate(() => {
       return window.confirm(
         `[Autowatch Live] It looks like you're not logged in. You can't earn rewards without being logged in. Would you like to login now?`
@@ -68,7 +70,7 @@ async function loop(page: Page) {
     });
 
     if (confirm) {
-      await page.goto(status.loginUrl);
+      await safeGoTo(page, status.loginUrl);
       do {
         log("Waiting for login to complete...");
         await wait(1000 * 5);
@@ -78,45 +80,38 @@ async function loop(page: Page) {
   }
 
   if (!status.isStream && !status.isChannelPage) {
-    await goToChannelPage(page);
+    return await goToChannelPage(page, CHANNEL_PAGE);
   }
 
   if (status.isChannelPage) {
     const streams = await findStreams(page);
 
     if (streams?.url) {
-      log(
-        chalk.green`${streams.isLive ? "Live" : "Scheduled"} stream detected, going to ${
-          streams.url
-        }`
+      logColor(
+        chalk.green,
+        `${streams.isLive ? "Live" : "Scheduled"} stream detected, going to ${streams.url}`
       );
-      await page.goto(streams.url);
+      return await safeGoTo(page, streams.url);
     } else {
-      log(chalk.yellow`Could not find any streams right now`);
+      logColor(chalk.yellow, `Could not find any streams right now`);
       await wait(1000 * 30);
-      await page.reload();
+      return await safeReload(page, CHANNEL_PAGE);
     }
   }
 
   if (status.isStream) {
     if (status.isStreamWaiting) {
-      logStatusMessage("Waiting for stream to begin...");
+      logStatusMessage(chalk.blue, "Waiting for stream to begin...");
     } else if (status.isStreamRewards) {
-      logStatusMessage(chalk.green`Stream has begun and rewards detected`);
+      logStatusMessage(chalk.green, `Stream has begun and rewards detected`);
     } else {
-      logStatusMessage(chalk.yellow`Stream has begun but no rewards detected`);
+      logStatusMessage(chalk.yellow, `Stream has begun but no rewards detected`);
       if (process.env.REFRESH_NO_REWARDS) {
         await wait(1000 * 30);
-        await page.reload();
+        return await safeReload(page, CHANNEL_PAGE);
       }
     }
   }
-}
-
-async function goToChannelPage(page: Page) {
-  // Go to the channel and look for a stream
-  log(chalk.yellow`No live stream detected, going to channel ${CHANNEL_PAGE}`);
-  await page.goto(CHANNEL_PAGE, { waitUntil: "domcontentloaded" });
 }
 
 main();
