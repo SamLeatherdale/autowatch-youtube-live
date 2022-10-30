@@ -101,7 +101,7 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
             (!!isLiveNowButton && isLiveNowButton.style.display === "none") ||
             (!!premierTrailerOverlay &&
               premierTrailerOverlay.style.display !== "none"),
-          isStreamRewards: rewardsButton?.innerText === "CONNECTED",
+          isStreamRewards: rewardsButton?.innerText?.toUpperCase() === "CONNECTED",
           videoId,
           urlVideoId,
           isVideoIdMismatch:
