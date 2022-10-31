@@ -33,32 +33,67 @@ export async function findStreams(page: Page): Promise<FindStreamResult> {
 async function dispatchAction<T extends Action>(page: Page, action: T) {
   return await page.evaluate<
     [DispatchParams],
-    (params: DispatchParams) => ActionResult<T>
+    (params: DispatchParams) => Promise<ActionResult<T>>
   >(
-    (params): ActionResult<T> => {
+    (params): Promise<ActionResult<T>> => {
       function getParentLink(el: HTMLElement) {
+        return (getParentEl(el, "a") as HTMLAnchorElement | undefined)?.href;
+      }
+      function getParentEl(el: HTMLElement, tagName: string) {
         let parent: HTMLElement | null | undefined = el;
 
-        while (parent && parent.tagName !== "A") {
+        while (parent && parent.tagName !== tagName.toUpperCase()) {
           parent = parent?.parentElement;
         }
-        return (parent as HTMLAnchorElement | undefined)?.href;
+        return parent;
       }
       function findStreams(): FindStreamResult {
         console.log(`[agent] finding livestreams...`);
 
-        const live = document.querySelector<HTMLElement>(
-          "[overlay-style=LIVE]"
-        );
+        const live = document.querySelector<HTMLElement>("[overlay-style=LIVE]");
         let link;
 
         if (live) {
           link = getParentLink(live);
         } else {
-          const scheduled = document.querySelector<HTMLElement>(
-            "[overlay-style=UPCOMING]"
-          );
-          link = scheduled ? getParentLink(scheduled) : undefined;
+          const scheduled = document.querySelectorAll<HTMLElement>("[overlay-style=UPCOMING]");
+          const sorted = Array.from(scheduled)
+            .map((el: HTMLElement) => {
+              const parent = getParentEl(el, "ytd-grid-video-renderer");
+              if (!parent) {
+                throw new Error("No video parent");
+              }
+              const metadata = parent.querySelector<HTMLDivElement>("#metadata-line");
+              if (!metadata) {
+                return undefined;
+              }
+              const text = metadata.innerText;
+              const [, date] = text.split(/Premieres\s+/);
+              if (!date) {
+                return undefined;
+              }
+              return {
+                el,
+                date: new Date(date),
+              };
+            })
+            .sort((a?: { date?: Date }, b?: { date?: Date }) => {
+              const [dateA, dateB] = [a, b].map((el) => el?.date);
+              if (dateA === dateB) {
+                return 0;
+              }
+              if (!dateA) {
+                return 1;
+              }
+              if (!dateB) {
+                return -1;
+              }
+              return dateA < dateB ? -1 : 1;
+            });
+          console.log(sorted);
+          const [firstScheduled] = sorted;
+          console.log(firstScheduled);
+          link = firstScheduled ? getParentLink(firstScheduled.el) : undefined;
         }
 
         const result = {
