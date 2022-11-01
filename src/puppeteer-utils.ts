@@ -4,8 +4,8 @@ import { logColor, logError } from "./util";
 
 export async function goToChannelPage(page: Page, channel: string) {
   // Go to the channel and look for a stream
-  logColor(chalk.yellow, `No live stream detected, going to channel ${channel}`);
-  const videosPage = channel.endsWith("/videos") ? channel : `${channel}/videos`;
+  const videosPage = channel.endsWith("/streams") ? channel : `${channel}/streams`;
+  logColor(chalk.yellow, `No live stream detected, going to channel ${videosPage}`);
   await safeGoTo(page, videosPage, { waitUntil: "domcontentloaded" });
 }
 

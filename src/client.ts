@@ -68,10 +68,11 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
                 return undefined;
               }
               const text = metadata.innerText;
-              const [, date] = text.split(/Premieres\s+/);
-              if (!date) {
+              const items = text.split(/(Premieres|Scheduled\s+for)\s+/);
+              if (items.length < 2) {
                 return undefined;
               }
+              const date = items[items.length - 1];
               return {
                 el,
                 date: new Date(date),
