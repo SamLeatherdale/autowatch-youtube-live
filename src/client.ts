@@ -59,7 +59,7 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
           const scheduled = document.querySelectorAll<HTMLElement>("[overlay-style=UPCOMING]");
           const sorted = Array.from(scheduled)
             .map((el: HTMLElement) => {
-              const parent = getParentEl(el, "ytd-grid-video-renderer");
+              const parent = getParentEl(el, "ytd-rich-item-renderer");
               if (!parent) {
                 throw new Error("No video parent");
               }
@@ -127,6 +127,20 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
         const premierTrailerOverlay = document.querySelector<HTMLElement>(
           ".ytp-offline-slate-premiere-trailer"
         );
+        if (isLiveStream) {
+          // Try to hide chat to fix memory leak
+          const button = document.querySelector<HTMLButtonElement>(
+            "ytd-live-chat-frame yt-button-shape button"
+          );
+          if (
+            button &&
+            button
+              .querySelector<HTMLElement>(".yt-core-attributed-string")
+              ?.innerText.toUpperCase() === "HIDE CHAT"
+          ) {
+            button.click();
+          }
+        }
 
         const result = {
           isChannelPage: !!document.querySelector("#channel-container"),
