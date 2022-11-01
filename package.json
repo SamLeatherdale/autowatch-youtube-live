@@ -5,11 +5,13 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node --transpileOnly src/index.ts",
-    "dev": "ts-node src/index.ts",
+    "dev": "nodemon",
     "test": "npm run lint && npm run typecheck",
     "lint": "eslint \"src/**/*.ts\"",
+    "format": "prettier --write src",
     "typecheck": "tsc --noEmit",
-    "type:compile": "tsc --project tsconfig.json"
+    "type:compile": "tsc --project tsconfig.json",
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
@@ -31,6 +33,9 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-typescript": "^3.5.1",
     "eslint-plugin-import": "^2.26.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.0.3",
+    "nodemon": "^2.0.20",
     "prettier": "^2.7.1"
   }
 }

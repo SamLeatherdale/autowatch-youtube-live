@@ -112,9 +112,7 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
         const loginButton = document.querySelector<HTMLElement>(
           '.ytd-masthead [href^="https://accounts.google.com"]'
         );
-        const videoId = document.querySelector<HTMLMetaElement>(
-          "meta[itemprop=videoId]"
-        )?.content;
+        const videoId = document.querySelector<HTMLMetaElement>("meta[itemprop=videoId]")?.content;
         const urlVideoId = new URLSearchParams(window.location.search).get("v");
         const isLiveStream = document.querySelector<HTMLMetaElement>(
           "meta[itemprop=isLiveBroadcast]"
@@ -122,8 +120,7 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
         const isPastLiveStream = document.querySelector<HTMLMetaElement>(
           "[itemprop=publication] meta[itemprop=endDate]"
         );
-        const isLiveNowButton =
-          document.querySelector<HTMLElement>(".ytp-live");
+        const isLiveNowButton = document.querySelector<HTMLElement>(".ytp-live");
         const premierTrailerOverlay = document.querySelector<HTMLElement>(
           ".ytp-offline-slate-premiere-trailer"
         );
@@ -148,13 +145,11 @@ async function dispatchAction<T extends Action>(page: Page, action: T) {
           isStream: !!isLiveStream && !isPastLiveStream,
           isStreamWaiting:
             (!!isLiveNowButton && isLiveNowButton.style.display === "none") ||
-            (!!premierTrailerOverlay &&
-              premierTrailerOverlay.style.display !== "none"),
+            (!!premierTrailerOverlay && premierTrailerOverlay.style.display !== "none"),
           isStreamRewards: rewardsButton?.innerText?.toUpperCase() === "CONNECTED",
           videoId,
           urlVideoId,
-          isVideoIdMismatch:
-            !!videoId && !!urlVideoId && videoId !== urlVideoId,
+          isVideoIdMismatch: !!videoId && !!urlVideoId && videoId !== urlVideoId,
         };
         console.log(`[agent]`, result);
         return result;
